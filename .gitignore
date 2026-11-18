@@ -1,0 +1,26 @@
+# Environment variables (NEVER COMMIT SECRETS TO GITHUB)
+.env
+*.env
+.env.local
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+ENV/
+
+# Local databases & uploads
+data/chroma_db/
+data/vector_db/
+data/uploads/
+output/*.pdf
+
+# Streamlit temporary config
+.streamlit/
+
+# OS specific files
+.DS_Store
+Thumbs.db
