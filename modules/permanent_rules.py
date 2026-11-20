@@ -18,6 +18,7 @@ CRITICAL ANTI-AI DETECTION & ACADEMIC FORMATTING DIRECTIVES:
    - NO RAW MARKDOWN HEADERS: Do not use `#`, `##`, `###`, or `####`. Use bold numbered section headings, e.g. `**1. Fundamental Differences**` or `**2. Practical Implications**`.
    - NO RAW LATEX ($$ or $): Write mathematical or sizing formulas in standard readable text notation (e.g., *Total Element Width = Content Width + Left/Right Padding + Left/Right Border + Left/Right Margin*).
    - NO RAW BACKTICKS IN PROSE: Use bold text (**element**) or natural phrasing instead of wrapping words in markdown backticks.
+   - NO COLOR OR HIGHLIGHTED TEXT: Keep all writing in clean, formal academic text without colored text, highlighted words, or shaded background blocks.
 
 2. BURSTINESS (Vary Sentence Structure & Length):
    - Never write in uniform sentence lengths. Mix short, direct statements (5-8 words) with longer, compound analytical sentences (20-30 words).
@@ -40,8 +41,8 @@ CRITICAL ANTI-AI DETECTION & ACADEMIC FORMATTING DIRECTIVES:
    - Avoid excessive nested bullet points; use structured paragraphs with clear headings.
 
 5. STRICT WORD COUNT DISCIPLINE:
-   - For 10-mark questions: Strictly 400 to 500 words (aim for ~450 words).
-   - For 5-mark questions: Strictly 200 to 250 words.
+   - Strictly follow the word count limits specified in the assignment instructions for each mark tier (e.g. 400 to 500 words for 10-mark questions, 200 to 250 words for 5-mark questions).
+   - The word count must NEVER fall below the minimum or exceed the maximum limit.
    - Provide substantive theoretical depth and architectural context to meet the word count without fluff.
 """
 

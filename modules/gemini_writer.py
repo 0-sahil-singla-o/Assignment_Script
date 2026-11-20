@@ -1,7 +1,7 @@
 """
 Academic Research & Answer Generation Engine.
 Uses Gemini API with internet knowledge, enforces permanent humanizer rules,
-and aligns answers with instructions retrieved from the Vector DB.
+and aligns answers directly with content instructions uploaded by the user.
 Includes resilient retry and automatic fallback across high-availability models.
 """
 import re
@@ -17,7 +17,7 @@ def count_words(text: str) -> int:
     return len(words)
 
 class GeminiAssignmentWriter:
-    def __init__(self, api_key: str, model_name: str = "gemini-3.5-flash"):
+    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash"):
         self.api_key = api_key
         self.model_name = model_name
         self.permanent_rules = get_permanent_humanizer_rules()
@@ -31,13 +31,15 @@ class GeminiAssignmentWriter:
     def _generate_with_fallback(self, prompt: str) -> str:
         """
         Attempts generation using active resilient models with automatic retry on 503/429 spikes.
-        Models prioritized: gemini-3.5-flash -> gemini-3.5-flash-lite -> gemini-3.1-flash-lite.
+        Models prioritized: user model -> gemini-2.5-flash -> gemini-2.0-flash -> gemini-1.5-flash -> gemini-3.5-flash.
         """
         models_to_try = [
             self.model_name,
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
             "gemini-3.5-flash",
-            "gemini-3.5-flash-lite",
-            "gemini-3.1-flash-lite"
+            "gemini-3.5-flash-lite"
         ]
         unique_models = []
         for m in models_to_try:
@@ -71,22 +73,23 @@ class GeminiAssignmentWriter:
     def draft_answer(
         self,
         question: Dict[str, Any],
+        content_instructions: str = "",
         rag_engine: Optional[InstructionRAGEngine] = None
     ) -> Dict[str, Any]:
         """
         Researches and drafts an in-depth academic answer for a single question.
-        Adheres to RAG-retrieved instructions and permanent humanizer rules.
+        Adheres directly to user-provided content instructions and permanent humanizer rules.
         """
         q_num = question.get("number", 1)
         q_text = question.get("text", "")
         marks = question.get("marks", 10)
 
-        # Retrieve instructions from Vector DB
-        retrieved_instructions = ""
-        if rag_engine:
-            retrieved_instructions = rag_engine.get_instructions_context(q_text)
+        # Combine content instructions with RAG context if both exist
+        active_instructions = content_instructions.strip()
+        if not active_instructions and rag_engine:
+            active_instructions = rag_engine.get_instructions_context(q_text)
 
-        # Target word count based on marks
+        # Determine target word count based on marks and instructions
         if marks >= 10:
             target_min, target_max = 400, 500
         elif marks >= 5:
@@ -94,21 +97,36 @@ class GeminiAssignmentWriter:
         else:
             target_min, target_max = 300, 450
 
+        # Dynamically check if content_instructions specifies a custom word range for this mark tier
+        # e.g. "10-mark ... 400-500 words" or "5-mark ... 200-250 words"
+        if active_instructions:
+            pattern = rf'{marks}\s*[-\s]?marks?.*?(\d{{3}})\s*(?:to|-)\s*(\d{{3}})\s*words?'
+            m_match = re.search(pattern, active_instructions, re.IGNORECASE)
+            if m_match:
+                target_min = int(m_match.group(1))
+                target_max = int(m_match.group(2))
+
         system_prompt = f"""
 {self.permanent_rules}
 
-ASSIGNMENT INSTRUCTIONS (RETRIEVED FROM VECTOR DATABASE):
-{retrieved_instructions if retrieved_instructions else "Follow standard university academic standards: 400-500 words for 10-mark questions, 200-250 for 5-mark questions. Times New Roman tone, Justified."}
+======================================================================
+MANDATORY ASSIGNMENT & CONTENT GUIDELINES (UPLOADED BY EVALUATOR):
+{active_instructions if active_instructions else "Follow standard university academic standards: 400-500 words for 10-mark questions, 200-250 for 5-mark questions. Times New Roman tone, Justified."}
+======================================================================
 """
 
         user_prompt = f"""
 QUESTION {q_num} ({marks} Marks):
 {q_text}
 
-MANDATORY WRITING & PRESENTATION REQUIREMENTS:
-1. Target Word Count: You MUST write between {target_min} and {target_max} words. Provide deep academic, theoretical, and practical analysis.
+MANDATORY WRITING & CONTENT REQUIREMENTS:
+1. Strict Word Count & Answering Guidelines:
+   - Adhere strictly to the word range and answering guidelines given in the ASSIGNMENT INSTRUCTIONS above for a {marks}-mark question.
+   - For this {marks}-mark question, you must write between {target_min} and {target_max} words. The word count must never fall below the lower limit ({target_min} words) or exceed the upper limit ({target_max} words).
+   - Provide deep academic, theoretical, and practical analysis.
 2. Academic Paper Presentation:
    - This is a formal university examination submission, NOT a coding sandbox or terminal session.
+   - Plain academic writing only: NO color highlighting, NO shaded background boxes.
    - NEVER output ASCII art diagrams or character boxes (+----+).
    - Do NOT output raw Markdown header hashes (#, ##, ###). Use bold numbered headings like '**1. Title**'.
    - If code is needed, include ONLY compact, focused snippets (3 to 6 lines max) illustrating the core syntax. Never paste full boilerplate files or terminal outputs.
@@ -125,12 +143,12 @@ MANDATORY WRITING & PRESENTATION REQUIREMENTS:
         word_count = count_words(answer)
 
         # Word count audit loop (expand if under target)
-        if word_count < (target_min - 35):
+        if word_count < (target_min - 30):
             expansion_prompt = f"""
 {system_prompt}
 
 The answer below for Question {q_num} ({marks} Marks) is currently only {word_count} words.
-The requirement is strictly between {target_min} and {target_max} words.
+The requirement is strictly between {target_min} and {target_max} words. The word count must never fall below {target_min} words.
 
 Current Draft:
 \"\"\"
@@ -138,7 +156,7 @@ Current Draft:
 \"\"\"
 
 TASK:
-Expand this answer to meet between {target_min} and {target_max} words.
+Expand this answer so its word count is between {target_min} and {target_max} words.
 Add more analytical depth, architectural comparison, and theoretical context.
 Do NOT add large code dumps or ASCII diagrams. Keep code minimal (3-5 lines max).
 Maintain the authentic humanized student tone without banned words.

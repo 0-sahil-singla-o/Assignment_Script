@@ -1,10 +1,10 @@
 """
 AI Academic Assignment Studio
-- Question Scanner: Powered by Groq (Meta Llama 3.1 8B - sub-second, 0% PC load)
-- Instruction RAG: ChromaDB Vector Store
-- Permanent Humanizer: Anti-AI detection rules
-- Answer Engine: Gemini API (Web accurate)
-- PDF Compiler: ReportLab (Times New Roman, 1-inch margins, justified)
+- Question Scanner: Powered by Groq (Meta Llama 3.3/3.1 - sub-second, 0% PC load)
+- Instruction Analyzer: Powered by Gemini (Splits PDF layout specs from Content/Word rules)
+- Permanent Humanizer: Anti-AI detection rules (Burstiness, Blacklists)
+- Answer Engine: Gemini API (Injects content & word count instructions directly into prompt)
+- PDF Compiler: ReportLab (Controlled dynamically by extracted PDF specs; unshaded plain white)
 """
 import streamlit as st
 import os
@@ -17,6 +17,7 @@ import modules.config
 import modules.permanent_rules
 import modules.question_scanner
 import modules.instruction_rag
+import modules.instruction_analyzer
 import modules.gemini_writer
 import modules.pdf_compiler
 
@@ -25,6 +26,7 @@ importlib.reload(modules.config)
 importlib.reload(modules.permanent_rules)
 importlib.reload(modules.question_scanner)
 importlib.reload(modules.instruction_rag)
+importlib.reload(modules.instruction_analyzer)
 importlib.reload(modules.gemini_writer)
 importlib.reload(modules.pdf_compiler)
 
@@ -36,6 +38,7 @@ from modules.question_scanner import (
     get_active_groq_models
 )
 from modules.instruction_rag import InstructionRAGEngine
+from modules.instruction_analyzer import analyze_instructions_with_gemini, DEFAULT_PDF_SPECS
 from modules.gemini_writer import GeminiAssignmentWriter
 from modules.pdf_compiler import compile_final_pdf
 
@@ -84,7 +87,7 @@ with st.sidebar:
         "⚡ Groq API Key (For Question Scanning)",
         value=saved_groq_key,
         type="password",
-        help="Free key from console.groq.com. Runs Meta Llama 3.1 8B with 0% PC load."
+        help="Free key from console.groq.com. Runs Meta Llama with 0% PC load."
     )
 
     if groq_api_key and groq_api_key.strip():
@@ -104,7 +107,7 @@ with st.sidebar:
 
     saved_gemini_key = os.getenv("GEMINI_API_KEY", "")
     gemini_api_key = st.text_input(
-        "🧠 Gemini API Key (For Research & Answers)",
+        "🧠 Gemini API Key (For Instruction Analysis & Answers)",
         value=saved_gemini_key,
         type="password",
         help="Free key from aistudio.google.com"
@@ -120,10 +123,10 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("""
     **Active Architecture:**
-    - **Scanner:** Groq (Meta Llama 3.1 8B)
-    - **Instructions:** Local Vector DB (ChromaDB)
-    - **Writer:** Gemini 2.0 Flash
-    - **PC Load:** **0% GPU / 0% Lag**
+    - **Scanner:** Groq Cloud LPU
+    - **Instructions:** Gemini Split (PDF Specs JSON + Direct Prompt Text)
+    - **Writer:** Gemini API (Direct Content Instructions)
+    - **PDF:** Dynamic ReportLab (Plain White, No Shading)
     """)
 
     st.markdown("---")
@@ -138,23 +141,25 @@ with st.sidebar:
                 pass
         st.session_state.pop("scanned_questions", None)
         st.session_state.pop("instructions_stored", None)
+        st.session_state.pop("pdf_layout_specs", None)
+        st.session_state.pop("content_instructions", None)
         st.success("Session reset!")
 
 # ----------------- MAIN WORKFLOW -----------------
 st.markdown('<div class="main-title">🎓 AI Academic Assignment Studio</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Fast Groq Question Scan (Meta Llama) → Instruction RAG → Accurate PDF Generation.</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Fast Groq Question Scan → Dynamic Instruction Split → Accurate Unshaded PDF Generation.</div>', unsafe_allow_html=True)
 
 tabs = st.tabs([
     "1️⃣ Assignment Details",
     "2️⃣ Questions (Groq Scan)",
-    "3️⃣ Instructions (RAG Store)",
+    "3️⃣ Instructions (Dynamic Split)",
     "4️⃣ Generate & Export PDF"
 ])
 
 # ================= TAB 1: ASSIGNMENT DETAILS =================
 with tabs[0]:
     st.subheader("📋 Step 1: Create Assignment Workspace")
-    st.caption("Define the title and university metadata for your assignment.")
+    st.caption("Define the title and university metadata for your assignment cover table.")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -168,8 +173,8 @@ with tabs[0]:
 
 # ================= TAB 2: QUESTIONS (GROQ SCAN) =================
 with tabs[1]:
-    st.subheader("❓ Step 2: Upload Questions Sheet & Scan with Meta Llama 3.1 (Groq)")
-    st.caption("Upload your questions document. Meta Llama 3.1 8B on Groq scans it in ~0.4s with zero PC lag.")
+    st.subheader("❓ Step 2: Upload Questions Sheet & Scan with Meta Llama (Groq)")
+    st.caption("Upload your questions document. Meta Llama on Groq scans it in ~0.4s with zero PC lag.")
 
     uploaded_q_file = st.file_uploader(
         "Upload Question Sheet (PDF, DOCX, TXT)",
@@ -203,7 +208,7 @@ with tabs[1]:
     # Live review of scanned questions
     if "scanned_questions" in st.session_state and st.session_state["scanned_questions"]:
         st.markdown("---")
-        st.markdown("### 📝 Scanned Questions (Extracted by Meta Llama 3.1 via Groq):")
+        st.markdown("### 📝 Scanned Questions (Extracted by Meta Llama via Groq):")
         st.caption("You can verify or adjust any question before generating answers:")
 
         updated_list = []
@@ -221,38 +226,71 @@ with tabs[1]:
 
         st.session_state["scanned_questions"] = updated_list
 
-# ================= TAB 3: INSTRUCTIONS (RAG) =================
+# ================= TAB 3: INSTRUCTIONS (DYNAMIC SPLIT) =================
 with tabs[2]:
-    st.subheader("📚 Step 3: Instructions & Anti-AI Humanizer Policy")
-    st.caption("Upload your assignment instructions. They will be stored in a Vector DB (RAG) for accurate retrieval.")
+    st.subheader("📚 Step 3: Upload Instructions & Dynamic Rule Separation")
+    st.caption("Gemini reads your instruction document and automatically splits it: physical PDF layout specs (JSON) and content/word-count guidelines (sent directly to the writer prompt).")
 
     uploaded_inst_file = st.file_uploader(
-        "Upload Instructions Sheet (PDF, DOCX, TXT)",
+        "Upload Instructions Document (PDF, DOCX, TXT)",
         type=["pdf", "docx", "txt"]
     )
 
     inst_manual_text = st.text_area(
-        "Or Type Specific Instructions:",
-        placeholder="e.g. Times New Roman 12, Justified, 400-500 words for 10 marks, include code examples."
+        "Or Type/Paste Specific Instructions:",
+        placeholder="e.g. 1-inch margins, Times New Roman 12, Justified, 400-500 words for 10 marks, no colour or highlighting."
     )
 
-    if st.button("📥 Store Instructions in Vector Database (RAG)", type="secondary"):
-        rag = InstructionRAGEngine()
-        rag.reset()
-        
-        combined_instructions = inst_manual_text or ""
-        if uploaded_inst_file:
-            inst_path = UPLOADS_DIR / uploaded_inst_file.name
-            with open(inst_path, "wb") as f:
-                f.write(uploaded_inst_file.getbuffer())
-            combined_instructions += "\n\n" + extract_raw_text(inst_path)
-
-        if combined_instructions.strip():
-            rag.add_instructions(combined_instructions)
-            st.session_state["instructions_stored"] = True
-            st.success("Instructions successfully indexed into Vector DB (RAG)!")
+    if st.button("🧠 Analyze Instructions with Gemini", type="primary"):
+        if not gemini_api_key or not gemini_api_key.strip():
+            st.error("⚠️ Please enter your Gemini API Key in the left sidebar to analyze instructions.")
         else:
-            st.info("Using system default university specifications.")
+            combined_instructions = inst_manual_text or ""
+            if uploaded_inst_file:
+                inst_path = UPLOADS_DIR / uploaded_inst_file.name
+                with open(inst_path, "wb") as f:
+                    f.write(uploaded_inst_file.getbuffer())
+                combined_instructions += "\n\n" + extract_raw_text(inst_path)
+
+            if combined_instructions.strip():
+                with st.spinner("Gemini is reading the instructions and splitting PDF specs from content guidelines..."):
+                    try:
+                        pdf_specs, content_guidelines = analyze_instructions_with_gemini(
+                            raw_text=combined_instructions,
+                            gemini_api_key=gemini_api_key
+                        )
+                        st.session_state["pdf_layout_specs"] = pdf_specs
+                        st.session_state["content_instructions"] = content_guidelines
+                        st.session_state["instructions_stored"] = True
+
+                        # Also store in RAG as secondary backup
+                        rag = InstructionRAGEngine()
+                        rag.reset()
+                        rag.add_instructions(combined_instructions)
+
+                        st.success("✅ Instructions successfully analyzed and applied!")
+                    except Exception as e:
+                        st.error(f"Error analyzing instructions: {e}")
+            else:
+                st.session_state["pdf_layout_specs"] = DEFAULT_PDF_SPECS.copy()
+                st.session_state["content_instructions"] = "Follow standard university academic standards: 400-500 words for 10-mark questions, 200-250 for 5-mark questions. Times New Roman tone, Justified."
+                st.info("Using system default university specifications.")
+
+    # Display current active split rules
+    if st.session_state.get("instructions_stored"):
+        st.markdown("---")
+        st.markdown("### 🔍 Active Instruction Split:")
+        
+        col_json, col_prompt = st.columns(2)
+        with col_json:
+            st.markdown("#### 1. PDF Layout Specs (Controls ReportLab Compiler)")
+            st.caption("Extracted physical page rules. Shading/Color disabled based on instructions:")
+            st.json(st.session_state.get("pdf_layout_specs", DEFAULT_PDF_SPECS))
+            
+        with col_prompt:
+            st.markdown("#### 2. Content & Word-Count Rules (Sent to Gemini Prompt)")
+            st.caption("Content guidelines, word limits, and answering standards:")
+            st.info(st.session_state.get("content_instructions", "Standard academic guidelines active."))
 
     st.markdown("---")
     st.subheader("🛡️ Permanent Anti-AI Detection Policy")
@@ -263,7 +301,7 @@ with tabs[2]:
 # ================= TAB 4: GENERATE & EXPORT PDF =================
 with tabs[3]:
     st.subheader("🚀 Step 4: Generate Answers & Download PDF")
-    st.caption("Gemini researches each question, respects your RAG instructions, and ReportLab compiles the submission PDF.")
+    st.caption("Gemini researches each question adhering to your content instructions, and ReportLab compiles the unshaded submission PDF.")
 
     active_questions = st.session_state.get("scanned_questions", [])
 
@@ -279,17 +317,25 @@ with tabs[3]:
                 rag = InstructionRAGEngine()
                 writer = GeminiAssignmentWriter(api_key=gemini_api_key)
 
+                # Get dynamic rules
+                pdf_specs = st.session_state.get("pdf_layout_specs", DEFAULT_PDF_SPECS)
+                content_inst = st.session_state.get("content_instructions", "")
+
                 progress_bar = st.progress(0.0)
                 status_box = st.empty()
 
                 answers = []
                 for idx, q in enumerate(active_questions):
                     status_box.markdown(f"**Researching & Writing Question {idx+1} of {len(active_questions)}:** *Q{q['number']}. {q['text'][:70]}...*")
-                    ans_data = writer.draft_answer(question=q, rag_engine=rag)
+                    ans_data = writer.draft_answer(
+                        question=q,
+                        content_instructions=content_inst,
+                        rag_engine=rag
+                    )
                     answers.append(ans_data)
                     progress_bar.progress((idx + 1) / len(active_questions))
 
-                status_box.markdown("**Compiling Final PDF with ReportLab (Times New Roman, 1-inch margins, Justified)...**")
+                status_box.markdown("**Compiling Final PDF with ReportLab (Dynamic Specs, Plain White, No Shading)...**")
 
                 meta_dict = {
                     "institution": institution,
@@ -302,7 +348,14 @@ with tabs[3]:
 
                 clean_name = course_code_name.split("-")[0].strip().replace(" ", "_")
                 output_pdf = OUTPUT_DIR / f"Assignment_{clean_name}_Submission.pdf"
-                compile_final_pdf(output_pdf, meta_dict, answers)
+                
+                # Compile PDF using the extracted layout specs
+                compile_final_pdf(
+                    output_path=output_pdf,
+                    metadata=meta_dict,
+                    answers=answers,
+                    layout_specs=pdf_specs
+                )
 
                 progress_bar.progress(1.0)
                 st.success("🎉 Assignment PDF successfully generated!")
@@ -322,5 +375,5 @@ with tabs[3]:
                 st.markdown("### 📄 Generated Answers & Word Count Audit:")
                 for item in answers:
                     with st.expander(f"Question {item['number']} ({item['marks']} Marks) — {item['word_count']} words"):
-                        st.markdown(f"**Word Count:** {item['word_count']} words (Target: 400-500 words for 10M)")
+                        st.markdown(f"**Word Count:** {item['word_count']} words")
                         st.markdown(item["answer"])
