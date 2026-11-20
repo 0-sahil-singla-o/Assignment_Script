@@ -1,0 +1,80 @@
+/* ==========================================================================
+   Root Application Layout Styles (Indigo-Violet Theme)
+   Hard Rule: Never set an opaque background on body, main, or page wrappers.
+   ========================================================================== */
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: transparent !important;
+  color: var(--color-text-primary);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.app-main {
+  flex: 1;
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-12);
+  background-color: transparent !important;
+}
+
+.step-content-mount {
+  width: 100%;
+}
+
+.app-footer {
+  margin-top: auto;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-overlay);
+  backdrop-filter: blur(var(--blur-overlay));
+  -webkit-backdrop-filter: blur(var(--blur-overlay));
+}
+
+.app-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.footer-text {
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.footer-pill {
+  font-family: var(--type-eyebrow-family);
+  font-size: 0.6875rem;
+  letter-spacing: var(--type-eyebrow-tracking);
+  text-transform: uppercase;
+  padding: 0.1875rem 0.625rem;
+  background-color: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-strong);
+}
+
+/* Mobile & Tablet Layout Adjustments */
+@media (max-width: 768px) {
+  .app-main {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-8);
+  }
+
+  .app-footer__inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

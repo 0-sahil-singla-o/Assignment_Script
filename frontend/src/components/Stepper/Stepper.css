@@ -1,0 +1,146 @@
+/* ==========================================================================
+   Stepper Component Styles (Sleek Glass Progress Bar)
+   ========================================================================== */
+
+.stepper-nav {
+  padding: var(--space-4) 0 var(--space-2) 0;
+}
+
+.stepper-track {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stepper-item {
+  position: relative;
+}
+
+.stepper-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background-color: var(--color-surface-default);
+  border: 1px solid var(--color-border-surface);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(var(--blur-surface));
+  -webkit-backdrop-filter: blur(var(--blur-surface));
+  cursor: default;
+  text-align: left;
+  transition: all var(--transition-fast);
+  color: var(--color-text-secondary);
+}
+
+.stepper-item--clickable .stepper-btn {
+  cursor: pointer;
+}
+
+.stepper-item--clickable .stepper-btn:hover {
+  border-color: var(--color-border-default);
+  background-color: var(--color-surface-raised);
+  transform: translateY(-1px);
+}
+
+/* Active Step: Glowing Luminous State */
+.stepper-item--active .stepper-btn {
+  background-color: var(--color-accent-subtle);
+  border-color: var(--color-accent-border);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.22);
+}
+
+/* Completed Step */
+.stepper-item--completed .stepper-btn {
+  border-color: var(--color-status-success-border);
+  background-color: var(--color-surface-default);
+}
+
+.stepper-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-sunken);
+  color: var(--color-text-tertiary);
+  font-family: var(--type-eyebrow-family);
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.stepper-item--active .stepper-indicator {
+  background-color: var(--color-accent-solid);
+  color: var(--color-text-on-solid);
+  border-color: transparent;
+  box-shadow: 0 0 12px 2px var(--color-focus-halo);
+}
+
+.stepper-item--completed .stepper-indicator {
+  background-color: var(--color-status-success-subtle);
+  color: var(--color-status-success-text);
+  border-color: var(--color-status-success-border);
+}
+
+.stepper-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.stepper-title {
+  font-family: var(--font-family-body);
+  font-size: var(--type-body-sm-size);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.stepper-subtitle {
+  font-family: var(--font-family-body);
+  font-size: var(--type-caption-size);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.stepper-item--active .stepper-subtitle {
+  color: var(--color-text-accent);
+}
+
+/* Tablet & Mobile Breakpoints */
+@media (max-width: 900px) {
+  .stepper-subtitle {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .stepper-track {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-2);
+  }
+
+  .stepper-btn {
+    padding: var(--space-2);
+    justify-content: center;
+    border-radius: var(--radius-md);
+  }
+
+  .stepper-content {
+    display: none;
+  }
+}

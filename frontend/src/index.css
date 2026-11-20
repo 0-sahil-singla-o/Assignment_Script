@@ -1,0 +1,5 @@
+/**
+ * Main application CSS entry point.
+ * Directly links our comprehensive design token system and baseline styles.
+ */
+@import './tokens/index.css';

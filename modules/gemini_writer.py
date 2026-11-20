@@ -17,7 +17,7 @@ def count_words(text: str) -> int:
     return len(words)
 
 class GeminiAssignmentWriter:
-    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash"):
+    def __init__(self, api_key: str, model_name: str = "gemini-3.5-flash-lite"):
         self.api_key = api_key
         self.model_name = model_name
         self.permanent_rules = get_permanent_humanizer_rules()
@@ -31,15 +31,12 @@ class GeminiAssignmentWriter:
     def _generate_with_fallback(self, prompt: str) -> str:
         """
         Attempts generation using active resilient models with automatic retry on 503/429 spikes.
-        Models prioritized: user model -> gemini-2.5-flash -> gemini-2.0-flash -> gemini-1.5-flash -> gemini-3.5-flash.
+        Models prioritized: user model -> gemini-3.5-flash-lite -> gemini-3.5-flash.
         """
         models_to_try = [
             self.model_name,
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash",
-            "gemini-3.5-flash",
-            "gemini-3.5-flash-lite"
+            "gemini-3.5-flash-lite",
+            "gemini-3.5-flash"
         ]
         unique_models = []
         for m in models_to_try:
@@ -90,28 +87,36 @@ class GeminiAssignmentWriter:
             active_instructions = rag_engine.get_instructions_context(q_text)
 
         # Determine target word count based on marks and instructions
+        # Standard university assessment benchmarks (e.g. Manipal / CDOE):
+        # 10 marks -> strictly 300 to 350 words
+        # 5 marks  -> strictly 150 to 200 words
         if marks >= 10:
-            target_min, target_max = 400, 500
+            target_min, target_max = 300, 350
         elif marks >= 5:
-            target_min, target_max = 200, 250
+            target_min, target_max = 150, 200
         else:
-            target_min, target_max = 300, 450
+            target_min, target_max = 250, 300
 
         # Dynamically check if content_instructions specifies a custom word range for this mark tier
-        # e.g. "10-mark ... 400-500 words" or "5-mark ... 200-250 words"
         if active_instructions:
-            pattern = rf'{marks}\s*[-\s]?marks?.*?(\d{{3}})\s*(?:to|-)\s*(\d{{3}})\s*words?'
+            pattern = rf'{marks}\s*[-\s]?marks?.*?(\d{{2,4}})\s*(?:to|-)\s*(\d{{2,4}})\s*words?'
             m_match = re.search(pattern, active_instructions, re.IGNORECASE)
             if m_match:
                 target_min = int(m_match.group(1))
                 target_max = int(m_match.group(2))
+            else:
+                gen_pattern = r'(\d{2,4})\s*(?:to|-)\s*(\d{2,4})\s*words?'
+                gen_match = re.search(gen_pattern, active_instructions, re.IGNORECASE)
+                if gen_match and marks >= 10:
+                    target_min = int(gen_match.group(1))
+                    target_max = int(gen_match.group(2))
 
         system_prompt = f"""
 {self.permanent_rules}
 
 ======================================================================
 MANDATORY ASSIGNMENT & CONTENT GUIDELINES (UPLOADED BY EVALUATOR):
-{active_instructions if active_instructions else "Follow standard university academic standards: 400-500 words for 10-mark questions, 200-250 for 5-mark questions. Times New Roman tone, Justified."}
+{active_instructions if active_instructions else "Follow standard university academic standards: 300-350 words for 10-mark questions, 150-200 for 5-mark questions. Times New Roman tone, Justified."}
 ======================================================================
 """
 
@@ -142,8 +147,8 @@ MANDATORY WRITING & CONTENT REQUIREMENTS:
         answer = self._generate_with_fallback(full_prompt)
         word_count = count_words(answer)
 
-        # Word count audit loop (expand if under target)
-        if word_count < (target_min - 30):
+        # Word count audit loop: expand if under target
+        if word_count < (target_min - 25):
             expansion_prompt = f"""
 {system_prompt}
 
@@ -168,8 +173,33 @@ Output ONLY the complete revised answer.
                     answer = revised_answer
                     word_count = count_words(answer)
             except Exception as e:
-                # If expansion experiences a server spike, keep the already-generated draft safely
                 print(f"Notice: Word expansion skipped due to temporary server load ({e}). Using base answer.")
+
+        # Word count audit loop: condense/trim if over target
+        elif word_count > (target_max + 15):
+            trim_prompt = f"""
+{system_prompt}
+
+The answer below for Question {q_num} ({marks} Marks) is currently {word_count} words, which exceeds the strict upper limit of {target_max} words.
+The requirement is strictly between {target_min} and {target_max} words (ideal target ~{(target_min + target_max)//2} words).
+
+Current Draft:
+\"\"\"
+{answer}
+\"\"\"
+
+TASK:
+Condense and tighten this answer so its word count is strictly between {target_min} and {target_max} words.
+Remove redundant filler, streamline explanations, and keep all core technical concepts and code snippets intact.
+Output ONLY the complete condensed revised answer.
+"""
+            try:
+                revised_answer = self._generate_with_fallback(trim_prompt)
+                if revised_answer:
+                    answer = revised_answer
+                    word_count = count_words(answer)
+            except Exception as e:
+                print(f"Notice: Word trimming skipped ({e}). Using base answer.")
 
         return {
             "number": q_num,

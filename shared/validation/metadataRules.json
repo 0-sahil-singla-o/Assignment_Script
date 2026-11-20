@@ -1,0 +1,84 @@
+{
+  "institution": {
+    "required": true,
+    "minLength": 3,
+    "maxLength": 120,
+    "maxWords": 20,
+    "disallowNumbers": true,
+    "label": "University / Institution Name",
+    "errorMessages": {
+      "required": "University / Institution Name is required.",
+      "noLeadingSpace": "Institution Name cannot start with empty spaces.",
+      "minLength": "Institution Name must be at least 3 characters.",
+      "maxLength": "Institution Name cannot exceed 120 characters.",
+      "maxWords": "Institution Name cannot exceed 20 words.",
+      "disallowNumbers": "University Name cannot contain numbers (letters and punctuation only)."
+    }
+  },
+  "course_code_name": {
+    "required": true,
+    "minLength": 3,
+    "maxLength": 80,
+    "maxWords": 12,
+    "label": "Course Code & Subject Title",
+    "errorMessages": {
+      "required": "Course Code & Subject Title is required (e.g. DCA7106 - Web Technologies).",
+      "noLeadingSpace": "Course Code cannot start with empty spaces.",
+      "minLength": "Course Code & Title must be at least 3 characters.",
+      "maxLength": "Course Code & Title cannot exceed 80 characters.",
+      "maxWords": "Course Code & Title cannot exceed 12 words."
+    }
+  },
+  "program": {
+    "required": true,
+    "minLength": 2,
+    "maxLength": 80,
+    "maxWords": 10,
+    "disallowNumbers": true,
+    "label": "Degree Program",
+    "errorMessages": {
+      "required": "Degree Program is required (e.g. MASTER OF COMPUTER APPLICATIONS).",
+      "noLeadingSpace": "Degree Program cannot start with empty spaces.",
+      "minLength": "Degree Program must be at least 2 characters.",
+      "maxLength": "Degree Program cannot exceed 80 characters.",
+      "maxWords": "Degree Program cannot exceed 10 words.",
+      "disallowNumbers": "Degree Program cannot contain numbers (e.g. use MCA, BCA, M.Sc)."
+    }
+  },
+  "session": {
+    "required": true,
+    "minLength": 3,
+    "maxLength": 30,
+    "label": "Academic Session",
+    "errorMessages": {
+      "required": "Academic Session is required (e.g. JULY 2026).",
+      "noLeadingSpace": "Academic Session cannot start with empty spaces.",
+      "minLength": "Academic Session must be at least 3 characters.",
+      "maxLength": "Academic Session cannot exceed 30 characters."
+    }
+  },
+  "semester": {
+    "required": true,
+    "onlyNumbers": true,
+    "minValue": 1,
+    "maxValue": 12,
+    "maxLength": 2,
+    "label": "Semester",
+    "errorMessages": {
+      "required": "Semester is required.",
+      "noLeadingSpace": "Semester cannot start with empty spaces.",
+      "onlyNumbers": "Semester must be numbers only (e.g. 1 to 12).",
+      "range": "Semester must be a valid number between 1 and 12.",
+      "maxLength": "Semester cannot exceed 2 digits."
+    }
+  },
+  "student_info": {
+    "required": false,
+    "maxLength": 80,
+    "label": "Student Info / Candidate ID",
+    "errorMessages": {
+      "noLeadingSpace": "Student Info cannot start with empty spaces.",
+      "maxLength": "Student Info cannot exceed 80 characters."
+    }
+  }
+}

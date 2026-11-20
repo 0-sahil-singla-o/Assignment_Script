@@ -1,18 +1,20 @@
 """
 ReportLab Academic PDF Compiler.
-Enforces dynamic formatting completely driven by extracted layout specs:
-- Dynamic page margins (e.g. 1.0 inch / 72 pt) with zero frame padding (starts exactly at margin)
-- Dynamic page size & orientation (A4 / Letter, Portrait / Landscape)
-- Dynamic font family & size applied uniformly across ALL sections (body, code blocks, tables, titles, headers/footers)
-- Dynamic color & shading enforcement (plain white, pure black when color/shading is disabled)
-- Dynamic two-pass pagination ('Page X of Y')
+Enforces dynamic university formatting based on extracted layout specifications:
+- Page Geometry: Margins (uniform or directional), Page size (A4, Letter, Legal), Orientation
+- Typography: Font family (Arial/Helvetica, Times-Roman, Courier), Font size, Line spacing (leading)
+- Color: Dynamic font color (Hex code e.g. #1F3864, #000000)
+- Alignment: Left, Justified, Center
 - Table parsing, heading normalization, and ASCII art filtering
+- Dynamic 'Page X of Y' pagination
 - File size < 2 MB
 """
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import re
-from reportlab.lib.pagesizes import A4, letter
+import os
+
+from reportlab.lib.pagesizes import A4, letter, legal, landscape
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER
@@ -27,13 +29,37 @@ from reportlab.platypus import (
     HRFlowable
 )
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# Register TrueType Arial if running on Windows
+def register_system_fonts():
+    registered = pdfmetrics.getRegisteredFontNames()
+    if os.path.exists("C:/Windows/Fonts/arial.ttf") and "Arial" not in registered:
+        try:
+            pdfmetrics.registerFont(TTFont("Arial", "C:/Windows/Fonts/arial.ttf"))
+            if os.path.exists("C:/Windows/Fonts/arialbd.ttf"):
+                pdfmetrics.registerFont(TTFont("Arial-Bold", "C:/Windows/Fonts/arialbd.ttf"))
+            if os.path.exists("C:/Windows/Fonts/ariali.ttf"):
+                pdfmetrics.registerFont(TTFont("Arial-Italic", "C:/Windows/Fonts/ariali.ttf"))
+        except Exception as e:
+            print(f"Font registration notice: {e}")
+
+register_system_fonts()
+
 
 class NumberedCanvas(canvas.Canvas):
-    """Dynamic two-pass canvas to compute and draw 'Page X of Y' in footer using extracted layout specs."""
+    """Dynamic two-pass canvas to compute and draw page numbering and headers."""
     font_name = "Times-Roman"
-    font_size = 12
-    margin_pts = 72.0
-    text_color = colors.black
+    font_size = 11
+    left_margin_pts = 72.0
+    right_margin_pts = 72.0
+    top_margin_pts = 72.0
+    bottom_margin_pts = 72.0
+    text_color = colors.HexColor("#000000")
+    page_format = "Page X of Y"
+    header_rule_line = True
+    page_position = "BOTTOM_RIGHT"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,17 +79,36 @@ class NumberedCanvas(canvas.Canvas):
 
     def draw_page_decorations(self, page_count):
         self.saveState()
-        self.setFont(self.font_name, self.font_size)
+        self.setFont(self.font_name, max(9, self.font_size - 1))
         self.setFillColor(self.text_color)
         
         page_width, page_height = self._pagesize
-        left_m = self.margin_pts
-        right_m = page_width - self.margin_pts
+        left_m = self.left_margin_pts
+        right_m = page_width - self.right_margin_pts
         
-        # Running footer on all pages (clean page numbering)
-        footer_y = self.margin_pts * 0.52
-        page_str = f"Page {self._pageNumber} of {page_count}"
-        self.drawRightString(right_m, footer_y, page_str)
+        # Running header on subsequent pages (page 2+)
+        if self._pageNumber > 1:
+            header_y = page_height - (self.top_margin_pts * 0.55)
+            self.drawString(left_m, header_y, "Internal Assignment Submission")
+            if self.header_rule_line:
+                self.setStrokeColor(self.text_color)
+                self.setLineWidth(0.4)
+                self.line(left_m, header_y - 4, right_m, header_y - 4)
+            
+        # Running footer
+        footer_y = self.bottom_margin_pts * 0.5
+        if "x / y" in self.page_format.lower():
+            page_str = f"{self._pageNumber} / {page_count}"
+        elif "page x" == self.page_format.lower().strip():
+            page_str = f"Page {self._pageNumber}"
+        else:
+            page_str = f"Page {self._pageNumber} of {page_count}"
+            
+        if self.page_position == "BOTTOM_CENTER":
+            self.drawCentredString(page_width / 2.0, footer_y, page_str)
+        else:
+            self.drawRightString(right_m, footer_y, page_str)
+            
         self.restoreState()
 
 
@@ -99,7 +144,8 @@ def parse_markdown_table(
     subheading_style: ParagraphStyle,
     body_style: ParagraphStyle,
     allow_shading: bool = False,
-    grid_color: Any = colors.black
+    grid_color: Any = colors.black,
+    table_borders: str = "GRID"
 ) -> Optional[Table]:
     """Parses a markdown table into a ReportLab Table following dynamic font and shading rules."""
     data = []
@@ -134,13 +180,22 @@ def parse_markdown_table(
     t = Table(formatted_data, colWidths=[col_width] * num_cols, hAlign='LEFT')
     
     table_styles = [
-        ('GRID', (0, 0), (-1, -1), 0.5, grid_color),
         ('TOPPADDING', (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
         ('LEFTPADDING', (0, 0), (-1, -1), 6),
         ('RIGHTPADDING', (0, 0), (-1, -1), 6),
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
     ]
+    
+    if table_borders == "SIMPLE_LINES":
+        table_styles.extend([
+            ('LINEABOVE', (0, 0), (-1, 0), 1.0, grid_color),
+            ('LINEBELOW', (0, 0), (-1, 0), 0.75, grid_color),
+            ('LINEBELOW', (0, -1), (-1, -1), 1.0, grid_color),
+        ])
+    else:
+        table_styles.append(('GRID', (0, 0), (-1, -1), 0.5, grid_color))
+        
     if allow_shading:
         table_styles.append(('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#F1F5F9")))
         
@@ -151,27 +206,23 @@ def parse_markdown_table(
 def parse_answer_to_flowables(
     raw_ans: str,
     usable_w: float,
-    styles: Any,
+    styles: Dict[str, ParagraphStyle],
     layout_specs: Optional[Dict[str, Any]] = None,
     grid_color: Any = colors.black
 ) -> List[Any]:
-    """
-    Parses raw LLM answer text into academic ReportLab flowables adhering dynamically to layout_specs:
-    - Font family & size match the rest of the document
-    - Shading / borders removed if allow_shading is False
-    - Headings, lists, and tables cleanly formatted
-    """
-    specs = layout_specs or {}
-    allow_shading = bool(specs.get("allow_shading", False))
-
+    """Parses raw answer text into flowables respecting dynamic styling specs."""
     flowables = []
+    specs = layout_specs or {}
     
     body_style = styles['AcademicBody']
     subheading_style = styles['AcademicSubheading']
     bullet_style = styles['AcademicBullet']
     code_style = styles['AcademicCode']
     
-    # Split code blocks first
+    allow_shading = bool(specs.get("allow_shading", False))
+    plain_code = bool(specs.get("plain_code_blocks", True))
+    table_borders = str(specs.get("table_borders", "GRID")).upper()
+    
     parts = re.split(r'(```[\s\S]*?```)', raw_ans)
     for part in parts:
         part = part.strip()
@@ -182,7 +233,6 @@ def parse_answer_to_flowables(
             code_content = re.sub(r'^```[a-zA-Z0-9_-]*\n?', '', part)
             code_content = re.sub(r'```$', '', code_content).strip()
             
-            # Check if this code block is actually an ASCII art diagram
             lines = code_content.split('\n')
             ascii_count = sum(1 for l in lines if is_ascii_diagram_line(l))
             if len(lines) >= 2 and (ascii_count / len(lines)) > 0.5:
@@ -190,11 +240,27 @@ def parse_answer_to_flowables(
                 
             code_escaped = code_content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
             code_html = code_escaped.replace('\n', '<br/>').replace(' ', '&nbsp;')
-            
             p = Paragraph(code_html, code_style)
-            flowables.append(Spacer(1, 4))
-            flowables.append(p)
-            flowables.append(Spacer(1, 6))
+            
+            if plain_code or not allow_shading:
+                # Plain, clean, unshaded textbook code block
+                flowables.append(Spacer(1, 4))
+                flowables.append(p)
+                flowables.append(Spacer(1, 6))
+            else:
+                # Shaded callout block
+                t = Table([[p]], colWidths=[usable_w], hAlign='LEFT')
+                t.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
+                    ('LINEBEFORE', (0, 0), (0, -1), 2.0, colors.HexColor("#475569")),
+                    ('TOPPADDING', (0, 0), (-1, -1), 5),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ]))
+                flowables.append(Spacer(1, 4))
+                flowables.append(t)
+                flowables.append(Spacer(1, 6))
         else:
             lines = part.split('\n')
             p_buffer = []
@@ -216,7 +282,8 @@ def parse_answer_to_flowables(
                         subheading_style,
                         body_style,
                         allow_shading=allow_shading,
-                        grid_color=grid_color
+                        grid_color=grid_color,
+                        table_borders=table_borders
                     )
                     if t:
                         flowables.append(Spacer(1, 4))
@@ -278,53 +345,80 @@ def compile_final_pdf(
     layout_specs: Optional[Dict[str, Any]] = None
 ) -> str:
     """
-    Compiles structured answers into a university-formatted PDF using dynamic layout specs:
-    - Margins, font family, font size, and alignment are extracted dynamically
-    - The extracted font & size are applied consistently across all sections
-    - Frame padding is 0pt so margins align exactly to the extracted specification
+    Compiles structured answers into a university-formatted PDF using extracted dynamic layout specs:
+    - Page Geometry: Margins (uniform or directional), Page size (A4, Letter, Legal), Orientation
+    - Typography: Font family (Arial TTF/Helvetica, Times-Roman, etc.), Font size, Line spacing
+    - Font Color: Dynamic hex color (e.g. #1F3864 Dark Blue) applied across document
+    - Alignment: Left, Justified, Center
     """
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
     specs = {
-        "page_margin_inch": 1.0,
         "page_size": "A4",
         "orientation": "PORTRAIT",
+        "page_margin_inch": 1.0,
+        "top_margin_inch": None,
+        "bottom_margin_inch": None,
+        "left_margin_inch": None,
+        "right_margin_inch": None,
+        "max_pages": 12,
+        "max_file_size_mb": 2.0,
         "font_family": "Times-Roman",
         "font_size": 12,
+        "font_color": "#000000",
+        "line_spacing": 1.33,
         "alignment": "JUSTIFIED",
-        "max_pages": 12,
+        "paragraph_spacing_pt": 8,
+        "heading_font_family": None,
+        "heading_font_size": 13,
+        "heading_font_color": None,
+        "allow_color_images": True,
+        "allow_text_highlighting": False,
         "allow_shading": False,
-        "allow_colors": False,
-        "plain_code_blocks": True
+        "plain_code_blocks": True,
+        "table_borders": "GRID",
+        "page_numbering_format": "Page X of Y",
+        "page_number_position": "BOTTOM_RIGHT",
+        "header_rule_line": True
     }
     if layout_specs:
         specs.update(layout_specs)
         
-    margin_inch = float(specs.get("page_margin_inch", 1.0))
-    margin_pts = margin_inch * 72.0
+    # 1. Page Geometry Margins
+    base_m = float(specs.get("page_margin_inch", 1.0))
+    left_m_pts = float(specs.get("left_margin_inch") or base_m) * 72.0
+    right_m_pts = float(specs.get("right_margin_inch") or base_m) * 72.0
+    top_m_pts = float(specs.get("top_margin_inch") or base_m) * 72.0
+    bottom_m_pts = float(specs.get("bottom_margin_inch") or base_m) * 72.0
     
-    # Page size
-    page_size_choice = A4
-    if str(specs.get("page_size", "A4")).upper() == "LETTER":
+    # 2. Page Size & Orientation
+    p_size = str(specs.get("page_size", "A4")).upper().strip()
+    if p_size in ["LETTER", "US LETTER"]:
         page_size_choice = letter
+    elif p_size == "LEGAL":
+        page_size_choice = legal
+    else:
+        page_size_choice = A4
         
-    usable_width = page_size_choice[0] - (2 * margin_pts)
-    usable_height = page_size_choice[1] - (2 * margin_pts)
+    if str(specs.get("orientation", "PORTRAIT")).upper().strip() == "LANDSCAPE":
+        page_size_choice = landscape(page_size_choice)
+        
+    usable_width = page_size_choice[0] - (left_m_pts + right_m_pts)
+    usable_height = page_size_choice[1] - (top_m_pts + bottom_m_pts)
 
     doc = SimpleDocTemplate(
         str(output_path),
         pagesize=page_size_choice,
-        leftMargin=margin_pts,
-        rightMargin=margin_pts,
-        topMargin=margin_pts,
-        bottomMargin=margin_pts
+        leftMargin=left_m_pts,
+        rightMargin=right_m_pts,
+        topMargin=top_m_pts,
+        bottomMargin=bottom_m_pts
     )
 
-    # Frame with 0 padding ensures text aligns exactly to margin_pts without default 6pt offset
     frame = Frame(
-        margin_pts,
-        margin_pts,
+        left_m_pts,
+        bottom_m_pts,
         usable_width,
         usable_height,
         leftPadding=0,
@@ -336,13 +430,19 @@ def compile_final_pdf(
     template = PageTemplate(id='normal', frames=frame)
     doc.addPageTemplates([template])
 
-    # Dynamic Font Family mapping from extracted specs
+    # 3. Dynamic Font Family mapping
     font_req = str(specs.get("font_family", "Times-Roman")).strip().lower()
-    if "times" in font_req:
-        font_regular = "Times-Roman"
-        font_bold = "Times-Bold"
-        font_italic = "Times-Italic"
-    elif "helvetica" in font_req or "arial" in font_req:
+    registered = pdfmetrics.getRegisteredFontNames()
+    if "arial" in font_req:
+        if "Arial" in registered and "Arial-Bold" in registered:
+            font_regular = "Arial"
+            font_bold = "Arial-Bold"
+            font_italic = "Arial-Italic" if "Arial-Italic" in registered else "Arial"
+        else:
+            font_regular = "Helvetica"
+            font_bold = "Helvetica-Bold"
+            font_italic = "Helvetica-Oblique"
+    elif "helvetica" in font_req:
         font_regular = "Helvetica"
         font_bold = "Helvetica-Bold"
         font_italic = "Helvetica-Oblique"
@@ -355,24 +455,64 @@ def compile_final_pdf(
         font_bold = "Times-Bold"
         font_italic = "Times-Italic"
 
-    # Dynamic Font Size & Leading from extracted specs
-    font_sz = int(specs.get("font_size", 12))
-    leading_sz = int(font_sz * 1.33)
+    # Heading font family
+    heading_font_req = specs.get("heading_font_family")
+    if heading_font_req:
+        h_req = str(heading_font_req).lower()
+        if "arial" in h_req:
+            heading_font = "Arial-Bold" if "Arial-Bold" in registered else "Helvetica-Bold"
+        else:
+            heading_font = font_bold
+    else:
+        heading_font = font_bold
 
-    # Dynamic Alignment
-    align_choice = TA_JUSTIFY if str(specs.get("alignment", "JUSTIFIED")).upper() == "JUSTIFIED" else TA_LEFT
+    # 4. Font Size & Line Spacing
+    font_sz = float(specs.get("font_size", 12))
+    line_spacing_mult = float(specs.get("line_spacing", 1.33))
+    leading_sz = font_sz * line_spacing_mult
+    para_spacing_pt = float(specs.get("paragraph_spacing_pt", 8))
 
-    # Dynamic Colors
-    allow_colors = bool(specs.get("allow_colors", False))
-    allow_shading = bool(specs.get("allow_shading", False))
-    main_text_color = colors.black if not allow_colors else colors.HexColor("#111111")
-    grid_line_color = colors.black if not allow_colors else colors.HexColor("#222222")
+    heading_sz = float(specs.get("heading_font_size", font_sz + 1))
+    heading_leading = heading_sz * line_spacing_mult
+
+    # 5. Dynamic Colors
+    raw_color = str(specs.get("font_color", "#000000")).strip()
+    try:
+        main_text_color = colors.HexColor(raw_color)
+    except Exception:
+        main_text_color = colors.HexColor("#000000")
+        
+    raw_h_color = specs.get("heading_font_color")
+    if raw_h_color:
+        try:
+            heading_text_color = colors.HexColor(str(raw_h_color).strip())
+        except Exception:
+            heading_text_color = main_text_color
+    else:
+        heading_text_color = main_text_color
+
+    grid_line_color = main_text_color
+
+    # 6. Alignment
+    align_req = str(specs.get("alignment", "JUSTIFIED")).upper().strip()
+    if align_req == "LEFT":
+        align_choice = TA_LEFT
+    elif align_req == "CENTER":
+        align_choice = TA_CENTER
+    else:
+        align_choice = TA_JUSTIFY
 
     # Configure NumberedCanvas dynamically
     NumberedCanvas.font_name = font_regular
-    NumberedCanvas.font_size = font_sz
-    NumberedCanvas.margin_pts = margin_pts
+    NumberedCanvas.font_size = int(font_sz)
+    NumberedCanvas.left_margin_pts = left_m_pts
+    NumberedCanvas.right_margin_pts = right_m_pts
+    NumberedCanvas.top_margin_pts = top_m_pts
+    NumberedCanvas.bottom_margin_pts = bottom_m_pts
     NumberedCanvas.text_color = main_text_color
+    NumberedCanvas.page_format = str(specs.get("page_numbering_format", "Page X of Y"))
+    NumberedCanvas.page_position = str(specs.get("page_number_position", "BOTTOM_RIGHT"))
+    NumberedCanvas.header_rule_line = bool(specs.get("header_rule_line", True))
 
     custom_styles = {
         'AcademicBody': ParagraphStyle(
@@ -381,18 +521,18 @@ def compile_final_pdf(
             fontSize=font_sz,
             leading=leading_sz,
             alignment=align_choice,
-            spaceAfter=8,
+            spaceAfter=para_spacing_pt,
             textColor=main_text_color
         ),
         'AcademicSubheading': ParagraphStyle(
             'AcademicSubheading',
-            fontName=font_bold,
-            fontSize=font_sz,
-            leading=leading_sz,
+            fontName=heading_font,
+            fontSize=heading_sz,
+            leading=heading_leading,
             alignment=TA_LEFT,
             spaceBefore=11,
             spaceAfter=4,
-            textColor=main_text_color
+            textColor=heading_text_color
         ),
         'AcademicBullet': ParagraphStyle(
             'AcademicBullet',
@@ -405,7 +545,6 @@ def compile_final_pdf(
             spaceAfter=3,
             textColor=main_text_color
         ),
-        # Code snippets uniformly take the extracted font family and font size
         'AcademicCode': ParagraphStyle(
             'AcademicCode',
             fontName=font_regular,
@@ -419,20 +558,20 @@ def compile_final_pdf(
 
     question_style = ParagraphStyle(
         'QuestionHeader',
-        fontName=font_bold,
-        fontSize=font_sz,
-        leading=leading_sz,
+        fontName=heading_font,
+        fontSize=heading_sz,
+        leading=heading_leading,
         alignment=TA_LEFT,
         spaceBefore=14,
         spaceAfter=8,
-        textColor=main_text_color
+        textColor=heading_text_color
     )
 
     title_style = ParagraphStyle(
         'HeaderTitle',
-        fontName=font_bold,
-        fontSize=font_sz,
-        leading=leading_sz,
+        fontName=heading_font,
+        fontSize=heading_sz + 3,
+        leading=heading_leading + 4,
         alignment=TA_CENTER,
         spaceAfter=8,
         textColor=main_text_color
@@ -456,19 +595,19 @@ def compile_final_pdf(
     story.append(Paragraph("INTERNAL ASSIGNMENT", title_style))
     story.append(Spacer(1, 4))
 
-    # Cover table styles using extracted font and size
+    # Cover table styles using dynamic font and color
     table_head_style = ParagraphStyle(
         'CoverTableHead',
         fontName=font_bold,
         fontSize=font_sz,
-        leading=int(font_sz * 1.25),
+        leading=leading_sz,
         textColor=main_text_color
     )
     table_cell_style = ParagraphStyle(
         'CoverTableCell',
         fontName=font_regular,
         fontSize=font_sz,
-        leading=int(font_sz * 1.25),
+        leading=leading_sz,
         textColor=main_text_color
     )
 
@@ -495,6 +634,7 @@ def compile_final_pdf(
         ]
     ]
 
+    allow_shading = bool(specs.get("allow_shading", False))
     meta_table_style = [
         ('GRID', (0, 0), (-1, -1), 0.5, grid_line_color),
         ('FONTNAME', (0, 0), (-1, -1), font_regular),
@@ -524,7 +664,6 @@ def compile_final_pdf(
         q_heading = f"<b>Q{q_num}. {q_text} &nbsp;&nbsp;[{marks} Marks]</b>"
         story.append(Paragraph(q_heading, question_style))
 
-        # Parse and format answer content
         answer_flowables = parse_answer_to_flowables(
             raw_ans,
             usable_width,

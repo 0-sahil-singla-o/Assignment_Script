@@ -1,0 +1,149 @@
+/* ==========================================================================
+   Button Component Styles (Pure Design Tokens: Indigo-Violet Theme)
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-body);
+  font-size: var(--type-button-size);
+  font-weight: var(--type-button-weight);
+  line-height: var(--type-button-leading);
+  letter-spacing: var(--type-button-tracking);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all var(--transition-fast);
+  position: relative;
+  text-decoration: none;
+}
+
+.btn:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+  box-shadow: 0 0 12px 2px var(--color-focus-halo);
+}
+
+.btn:disabled {
+  background: var(--color-surface-disabled) !important;
+  border-color: var(--color-border-disabled) !important;
+  color: var(--color-text-disabled) !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  box-shadow: none !important;
+}
+
+.btn--full {
+  width: 100%;
+}
+
+/* Sizes */
+.btn--sm {
+  font-size: var(--type-label-size);
+  padding: 0.375rem 0.75rem;
+  height: 32px;
+  border-radius: var(--radius-sm);
+}
+
+.btn--md {
+  font-size: var(--type-button-size);
+  padding: 0.5rem 1.125rem;
+  height: 40px;
+}
+
+.btn--lg {
+  font-size: var(--type-body-size);
+  padding: 0.75rem 1.5rem;
+  height: 48px;
+  border-radius: var(--radius-lg);
+}
+
+/* Primary Variant: Accent Solid (Lilac #C4B5FD with Dark Ink #1B1230 in Dark Mode) */
+.btn--primary {
+  background-color: var(--color-accent-solid);
+  color: var(--color-text-on-solid);
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: 0 4px 18px rgba(196, 181, 253, 0.35);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background-color: var(--color-accent-solid-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(196, 181, 253, 0.45);
+}
+
+.btn--primary:active:not(:disabled) {
+  background-color: var(--color-accent-solid-active);
+  transform: translateY(0);
+}
+
+/* Secondary Variant: Accent Subtle */
+.btn--secondary {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  border-color: var(--color-border-subtle);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background-color: var(--color-accent-subtle-hover);
+  color: var(--color-accent-text-hover);
+  border-color: var(--color-accent-border);
+  transform: translateY(-1px);
+}
+
+/* Outline Variant */
+.btn--outline {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.btn--outline:hover:not(:disabled) {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  border-color: var(--color-accent-border);
+  transform: translateY(-1px);
+}
+
+/* Ghost Variant */
+.btn--ghost {
+  background-color: transparent;
+  color: var(--color-accent-text);
+  border-color: transparent;
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent-text-hover);
+}
+
+/* Danger / Status Error Variant */
+.btn--danger {
+  background-color: var(--color-status-error-solid);
+  color: var(--color-text-on-solid);
+  border-color: transparent;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background-color: var(--color-status-error-solid-hover);
+}
+
+/* Spinner */
+.btn__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--radius-full);
+  animation: btn-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}

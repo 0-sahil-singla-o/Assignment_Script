@@ -1,0 +1,149 @@
+/* ==========================================================================
+   Input / Select / Textarea Styles (Indigo-Violet Theme)
+   ========================================================================== */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  text-align: left;
+  width: 100%;
+}
+
+.form-field--full {
+  width: 100%;
+}
+
+.form-field__label {
+  font-family: var(--type-label-family);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.form-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.form-field__icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.form-field__input,
+.form-field__textarea,
+.form-field__select {
+  width: 100%;
+  background-color: var(--color-surface-sunken);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-body);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-leading);
+  padding: 0.6875rem 1rem;
+  transition: all var(--transition-fast);
+  outline: none;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .form-field__input,
+[data-theme="dark"] .form-field__textarea,
+[data-theme="dark"] .form-field__select {
+  background-color: rgba(15, 10, 28, 0.65);
+  border-color: rgba(167, 139, 250, 0.25);
+}
+
+[data-theme="light"] .form-field__input,
+[data-theme="light"] .form-field__textarea,
+[data-theme="light"] .form-field__select {
+  background-color: #FFFFFF;
+  border-color: var(--color-border-strong);
+}
+
+.form-field__input--has-icon {
+  padding-left: 2.5rem;
+}
+
+.form-field__input::placeholder,
+.form-field__textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.form-field__input:focus,
+.form-field__textarea:focus,
+.form-field__select:focus {
+  border-color: var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+  box-shadow: 0 0 14px 2px var(--color-focus-halo);
+}
+
+.form-field--error .form-field__label {
+  color: var(--color-status-error-text);
+}
+
+.form-field--error .form-field__input,
+.form-field--error .form-field__textarea,
+.form-field--error .form-field__select {
+  border-color: var(--color-status-error-solid) !important;
+  background-color: var(--color-status-error-subtle) !important;
+  box-shadow: 0 0 0 1px var(--color-status-error-solid), 0 0 14px rgba(239, 68, 68, 0.22) !important;
+}
+
+.form-field--error .form-field__input:focus,
+.form-field--error .form-field__textarea:focus,
+.form-field--error .form-field__select:focus {
+  outline: 2px solid var(--color-status-error-solid) !important;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 2px var(--color-status-error-solid), 0 0 18px rgba(239, 68, 68, 0.35) !important;
+}
+
+.form-field__message {
+  font-family: var(--type-caption-family);
+  font-size: var(--type-caption-size);
+  color: var(--color-text-tertiary);
+  margin-top: 4px;
+}
+
+.form-field__message--error {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-status-error-text);
+  font-weight: 500;
+  animation: errorShake 0.25s ease-in-out;
+}
+
+.form-field__error-icon {
+  flex-shrink: 0;
+  color: var(--color-status-error-solid);
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.form-field__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23C4B5FD' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.form-field__select option {
+  background-color: var(--color-bg-vignette);
+  color: var(--color-text-primary);
+}

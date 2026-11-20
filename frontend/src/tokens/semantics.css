@@ -1,0 +1,190 @@
+/**
+ * Semantic Design Tokens
+ * Theme-aware tokens for surfaces, text, borders, shadows, and status colors.
+ */
+
+:root, [data-theme="light"] {
+  /* Surfaces */
+  --surface-canvas: #F8FAFC;
+  --surface-card: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --surface-sunken: #F1F5F9;
+  --surface-hover: #F8FAFC;
+  --surface-active: #F1F5F9;
+  --surface-accent: #EEF2FF;
+
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8FAFC;
+  --color-surface-subtle: #F1F5F9;
+  --color-surface-card: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-hover: #F8FAFC;
+  --color-surface-active: #F1F5F9;
+
+  /* Typography */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --text-inverse: #FFFFFF;
+  --text-accent: #3730A3;
+
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+  --color-text-inverse: #FFFFFF;
+
+  /* Borders */
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --border-focus: #4F46E5;
+  --border-accent: #C7D2FE;
+
+  --color-border-subtle: #E2E8F0;
+  --color-border-strong: #CBD5E1;
+  --color-border-focus: #4F46E5;
+
+  /* Brand / Accent (Deep Indigo) */
+  --accent-primary: #4F46E5;
+  --accent-hover: #4338CA;
+  --accent-active: #3730A3;
+  --accent-subtle: #EEF2FF;
+  --accent-ring: rgba(79, 70, 229, 0.25);
+
+  --color-brand-50: #EEF2FF;
+  --color-brand-100: #E0E7FF;
+  --color-brand-500: #6366F1;
+  --color-brand-600: #4F46E5;
+  --color-brand-700: #4338CA;
+  --color-brand-800: #3730A3;
+  --color-white: #FFFFFF;
+
+  /* Status Colors */
+  --status-success: #059669;
+  --status-success-surface: #ECFDF5;
+  --status-success-border: #A7F3D0;
+
+  --color-status-success-bg: #ECFDF5;
+  --color-status-success-text: #065F46;
+  --color-status-success-border: #A7F3D0;
+
+  --status-warning: #D97706;
+  --status-warning-surface: #FFFBEB;
+  --status-warning-border: #FDE68A;
+
+  --color-status-warning-bg: #FFFBEB;
+  --color-status-warning-text: #92400E;
+  --color-status-warning-border: #FDE68A;
+
+  --status-error: #DC2626;
+  --status-error-surface: #FEF2F2;
+  --status-error-border: #FECACA;
+
+  --color-status-error-bg: #FEF2F2;
+  --color-status-error-text: #991B1B;
+  --color-status-error-border: #FECACA;
+
+  --status-info: #2563EB;
+  --status-info-surface: #EFF6FF;
+  --status-info-border: #BFDBFE;
+
+  /* Elevation Shadows */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+  --shadow-accent: 0 4px 14px 0 rgba(79, 70, 229, 0.28);
+}
+
+[data-theme="dark"] {
+  /* Surfaces */
+  --surface-canvas: #090D16;
+  --surface-card: #111827;
+  --surface-elevated: #1F2937;
+  --surface-sunken: #0B0F19;
+  --surface-hover: #1A2234;
+  --surface-active: #242E42;
+  --surface-accent: #1E1B4B;
+
+  --color-bg-primary: #0F172A;
+  --color-bg-secondary: #090D16;
+  --color-surface-subtle: #162032;
+  --color-surface-card: #1E293B;
+  --color-surface-elevated: #243046;
+  --color-surface-hover: #263349;
+  --color-surface-active: #2D3D58;
+
+  /* Typography */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-inverse: #0F172A;
+  --text-accent: #A5B4FC;
+
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-text-inverse: #0F172A;
+
+  /* Borders */
+  --border-subtle: #334155;
+  --border-strong: #475569;
+  --border-focus: #6366F1;
+  --border-accent: #312E81;
+
+  --color-border-subtle: #334155;
+  --color-border-strong: #475569;
+  --color-border-focus: #6366F1;
+
+  /* Brand / Accent (Vibrant Indigo) */
+  --accent-primary: #6366F1;
+  --accent-hover: #4F46E5;
+  --accent-active: #4338CA;
+  --accent-subtle: #1E1B4B;
+  --accent-ring: rgba(99, 102, 241, 0.35);
+
+  --color-brand-50: #1E1B4B;
+  --color-brand-100: #2E297A;
+  --color-brand-500: #818CF8;
+  --color-brand-600: #6366F1;
+  --color-brand-700: #4F46E5;
+  --color-brand-800: #4338CA;
+  --color-white: #FFFFFF;
+
+  /* Status Colors */
+  --status-success: #10B981;
+  --status-success-surface: #064E3B;
+  --status-success-border: #047857;
+
+  --color-status-success-bg: rgba(6, 78, 59, 0.35);
+  --color-status-success-text: #34D399;
+  --color-status-success-border: #047857;
+
+  --status-warning: #F59E0B;
+  --status-warning-surface: #78350F;
+  --status-warning-border: #B45309;
+
+  --color-status-warning-bg: rgba(120, 53, 15, 0.35);
+  --color-status-warning-text: #FBBF24;
+  --color-status-warning-border: #B45309;
+
+  --status-error: #EF4444;
+  --status-error-surface: #7F1D1D;
+  --status-error-border: #B91C1C;
+
+  --color-status-error-bg: rgba(127, 29, 29, 0.35);
+  --color-status-error-text: #F87171;
+  --color-status-error-border: #B91C1C;
+
+  --status-info: #3B82F6;
+  --status-info-surface: #1E3A8A;
+  --status-info-border: #1D4ED8;
+
+  /* Elevation Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+  --shadow-accent: 0 4px 18px 0 rgba(99, 102, 241, 0.4);
+}

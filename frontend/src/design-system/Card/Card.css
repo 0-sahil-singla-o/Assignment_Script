@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Card Component Styles (Pure Design Tokens: Indigo-Violet Theme)
+   ========================================================================== */
+
+.card {
+  background-color: rgba(30, 18, 62, 0.75);
+  border: 1px solid rgba(196, 181, 253, 0.22);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 16px 40px rgba(15, 10, 28, 0.45);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+[data-theme="light"] .card,
+.light .card {
+  background-color: rgba(255, 255, 255, 0.88);
+  border-color: rgba(111, 95, 156, 0.18);
+  box-shadow: 0 16px 40px rgba(111, 95, 156, 0.12);
+}
+
+.card--elevated,
+.card--raised {
+  background-color: rgba(38, 24, 76, 0.85);
+  border-color: rgba(196, 181, 253, 0.3);
+  box-shadow: 0 20px 48px rgba(15, 10, 28, 0.55);
+}
+
+[data-theme="light"] .card--elevated,
+[data-theme="light"] .card--raised,
+.light .card--elevated,
+.light .card--raised {
+  background-color: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 48px rgba(111, 95, 156, 0.16);
+}
+
+.card--subtle {
+  background-color: var(--color-bg-subtle);
+  border-color: var(--color-border-subtle);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.card--clickable {
+  cursor: pointer;
+}
+
+.card--clickable:hover {
+  border-color: var(--color-accent-border);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 48px rgba(139, 92, 246, 0.25);
+}
+
+.card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-4);
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.card__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.card__title {
+  font-family: var(--type-h3-family);
+  font-size: var(--type-h3-size);
+  font-weight: var(--type-h3-weight);
+  line-height: var(--type-h3-leading);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.card__subtitle {
+  font-family: var(--type-body-sm-family);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-leading);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.card__body {
+  flex: 1;
+}
+
+.card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}

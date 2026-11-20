@@ -1,0 +1,101 @@
+/* ==========================================================================
+   Modal Component Styles (Solid Scrim & Opaque Surface to prevent bleed-through)
+   ========================================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 10, 28, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: 9999;
+  animation: modal-fade 0.2s ease-out;
+}
+
+[data-theme="light"] .modal-backdrop,
+.light .modal-backdrop {
+  background-color: rgba(42, 33, 70, 0.45);
+}
+
+.modal {
+  width: 100%;
+  max-width: 540px;
+  background-color: var(--color-bg-vignette); /* #1B1230 in dark, #FFFFFF in light - opaque to prevent text bleed */
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 10000;
+  animation: modal-scale 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: calc(100vh - 48px);
+  position: relative;
+}
+
+[data-theme="light"] .modal,
+.light .modal {
+  background-color: #FFFFFF;
+  box-shadow: 0 24px 60px rgba(111, 95, 156, 0.25);
+  border-color: var(--color-border-surface);
+}
+
+.modal__header {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: transparent;
+}
+
+.modal__title {
+  font-family: var(--type-h4-family);
+  font-size: var(--type-h4-size);
+  font-weight: var(--type-h4-weight);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.modal__close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.modal__close:hover {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+}
+
+.modal__body {
+  padding: var(--space-6);
+  overflow-y: auto;
+}
+
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

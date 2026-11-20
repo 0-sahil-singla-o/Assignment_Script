@@ -41,7 +41,7 @@ CRITICAL ANTI-AI DETECTION & ACADEMIC FORMATTING DIRECTIVES:
    - Avoid excessive nested bullet points; use structured paragraphs with clear headings.
 
 5. STRICT WORD COUNT DISCIPLINE:
-   - Strictly follow the word count limits specified in the assignment instructions for each mark tier (e.g. 400 to 500 words for 10-mark questions, 200 to 250 words for 5-mark questions).
+   - Strictly follow the word count limits specified in the assignment instructions for each mark tier (e.g. 300 to 350 words for 10-mark questions, 150 to 200 words for 5-mark questions, or as specified in prompt).
    - The word count must NEVER fall below the minimum or exceed the maximum limit.
    - Provide substantive theoretical depth and architectural context to meet the word count without fluff.
 """

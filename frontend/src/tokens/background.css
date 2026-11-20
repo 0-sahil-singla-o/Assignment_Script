@@ -1,0 +1,346 @@
+/* ==========================================================================
+   HIGH-PERFORMANCE AMBIENT BACKGROUND & SURFACE CLASSES (0% LAG OPTIMIZED)
+   BioAge Aesthetics: Rich glowing auras in Violet, Mauve, Pink, Sky, and Fuchsia.
+   ========================================================================== */
+
+html {
+  background: var(--color-bg-canvas);
+  transition: background 0.3s ease;
+  font-family: var(--font-family-body);
+  color-scheme: dark light;
+}
+
+body {
+  background: transparent;
+  color: var(--color-text-primary);
+  transition: color 0.3s ease;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ambient Radial Mesh Gradient Field */
+.bg-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 30%,
+    var(--color-bg-canvas) 0%,
+    var(--color-bg-canvas) 38%,
+    var(--color-bg-vignette) 100%
+  );
+}
+
+/* Atmospheric Glow Orbs (Multi-stop Watercolor & Cosmic Auras) */
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+/* Dark Mode Auras */
+[data-theme="dark"] .bg-blob-1,
+:root:not([data-theme="light"]) .bg-blob-1 {
+  width: 60vmax;
+  height: 60vmax;
+  top: -15vmax;
+  right: -15vmax;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.26) 0%, rgba(111, 95, 156, 0.18) 45%, transparent 70%);
+}
+
+[data-theme="dark"] .bg-blob-2,
+:root:not([data-theme="light"]) .bg-blob-2 {
+  width: 65vmax;
+  height: 65vmax;
+  bottom: -20vmax;
+  left: -20vmax;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.24) 0%, rgba(139, 92, 246, 0.22) 50%, transparent 70%);
+}
+
+[data-theme="dark"] .bg-blob-3,
+:root:not([data-theme="light"]) .bg-blob-3 {
+  width: 48vmax;
+  height: 48vmax;
+  top: 20vmax;
+  left: 2vmax;
+  background: radial-gradient(circle, rgba(217, 70, 239, 0.22) 0%, rgba(139, 92, 246, 0.14) 45%, transparent 70%);
+}
+
+[data-theme="dark"] .bg-blob-4,
+:root:not([data-theme="light"]) .bg-blob-4 {
+  width: 48vmax;
+  height: 48vmax;
+  top: 30vmax;
+  right: -8vmax;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, rgba(168, 85, 247, 0.15) 50%, transparent 70%);
+}
+
+[data-theme="dark"] .bg-blob-5,
+:root:not([data-theme="light"]) .bg-blob-5 {
+  width: 52vmax;
+  height: 52vmax;
+  top: -10vmax;
+  left: -12vmax;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.32) 0%, rgba(14, 165, 233, 0.15) 55%, transparent 70%);
+}
+
+/* Light Mode Auras (Soft Watercolor Pastels) */
+[data-theme="light"] .bg-blob-1,
+.light .bg-blob-1 {
+  width: 60vmax;
+  height: 60vmax;
+  top: -15vmax;
+  right: -15vmax;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.2) 0%, rgba(167, 139, 250, 0.16) 50%, transparent 70%);
+}
+
+[data-theme="light"] .bg-blob-2,
+.light .bg-blob-2 {
+  width: 65vmax;
+  height: 65vmax;
+  bottom: -20vmax;
+  left: -20vmax;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, rgba(129, 140, 248, 0.18) 50%, transparent 70%);
+}
+
+[data-theme="light"] .bg-blob-3,
+.light .bg-blob-3 {
+  width: 48vmax;
+  height: 48vmax;
+  top: 20vmax;
+  left: 2vmax;
+  background: radial-gradient(circle, rgba(232, 121, 249, 0.16) 0%, rgba(192, 132, 252, 0.14) 50%, transparent 70%);
+}
+
+[data-theme="light"] .bg-blob-4,
+.light .bg-blob-4 {
+  width: 48vmax;
+  height: 48vmax;
+  top: 30vmax;
+  right: -8vmax;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.16) 0%, rgba(168, 85, 247, 0.14) 50%, transparent 70%);
+}
+
+[data-theme="light"] .bg-blob-5,
+.light .bg-blob-5 {
+  width: 52vmax;
+  height: 52vmax;
+  top: -10vmax;
+  left: -12vmax;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, rgba(45, 212, 191, 0.15) 50%, transparent 70%);
+}
+
+.bg-dust {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ---------------- High-Performance Surface Classes ---------------- */
+.surface-subtle {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+}
+
+.surface-default {
+  background: rgba(30, 18, 62, 0.72);
+  border: 1px solid rgba(196, 181, 253, 0.22);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 16px 40px rgba(10, 5, 20, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+[data-theme="light"] .surface-default,
+.light .surface-default {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(111, 95, 156, 0.18);
+  box-shadow: 0 16px 40px rgba(111, 95, 156, 0.12);
+}
+
+.surface-raised {
+  background: var(--color-bg-vignette);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="light"] .surface-raised,
+.light .surface-raised {
+  background: #FFFFFF;
+  border-color: var(--color-border-surface);
+  box-shadow: 0 24px 60px rgba(111, 95, 156, 0.2);
+}
+
+.surface-sunken {
+  background: rgba(15, 10, 28, 0.65);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="light"] .surface-sunken,
+.light .surface-sunken {
+  background: #FFFFFF;
+  border-color: var(--color-border-strong);
+}
+
+.surface-overlay {
+  background: rgba(27, 18, 48, 0.82);
+  border-bottom: 1px solid var(--color-border-subtle);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+[data-theme="light"] .surface-overlay,
+.light .surface-overlay {
+  background: rgba(249, 247, 253, 0.9);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.surface-inverse {
+  background: var(--color-surface-inverse);
+  color: var(--color-text-on-inverse);
+  border-radius: var(--radius-md);
+}
+
+.surface-disabled {
+  background: var(--color-surface-disabled);
+  border: 1px solid var(--color-border-disabled);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+/* ---------------- Focus ring ---------------- */
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+  box-shadow: 0 0 12px 2px var(--color-focus-halo);
+}
+
+/* ---------------- Two-Tone Headline Helper Classes ---------------- */
+.type-display {
+  font-family: var(--type-display-family);
+  font-size: var(--type-display-size);
+  font-weight: var(--type-display-weight);
+  line-height: var(--type-display-leading);
+  letter-spacing: var(--type-display-tracking);
+  color: var(--color-text-primary);
+}
+
+.type-h1 {
+  font-family: var(--type-h1-family);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  line-height: var(--type-h1-leading);
+  letter-spacing: var(--type-h1-tracking);
+  color: var(--color-text-primary);
+}
+
+.type-h2 {
+  font-family: var(--type-h2-family);
+  font-size: var(--type-h2-size);
+  font-weight: var(--type-h2-weight);
+  line-height: var(--type-h2-leading);
+  letter-spacing: var(--type-h2-tracking);
+  color: var(--color-text-primary);
+}
+
+.type-h3 {
+  font-family: var(--type-h3-family);
+  font-size: var(--type-h3-size);
+  font-weight: var(--type-h3-weight);
+  line-height: var(--type-h3-leading);
+  color: var(--color-text-primary);
+}
+
+.type-h4 {
+  font-family: var(--type-h4-family);
+  font-size: var(--type-h4-size);
+  font-weight: var(--type-h4-weight);
+  line-height: var(--type-h4-leading);
+  color: var(--color-text-primary);
+}
+
+.type-body-lg {
+  font-family: var(--type-body-lg-family);
+  font-size: var(--type-body-lg-size);
+  font-weight: var(--type-body-lg-weight);
+  line-height: var(--type-body-lg-leading);
+  color: var(--color-text-secondary);
+}
+
+.type-body {
+  font-family: var(--type-body-family);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  line-height: var(--type-body-leading);
+  color: var(--color-text-primary);
+}
+
+.type-body-sm {
+  font-family: var(--type-body-sm-family);
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--type-body-sm-weight);
+  line-height: var(--type-body-sm-leading);
+  color: var(--color-text-secondary);
+}
+
+.type-caption {
+  font-family: var(--type-caption-family);
+  font-size: var(--type-caption-size);
+  font-weight: var(--type-caption-weight);
+  line-height: var(--type-caption-leading);
+  color: var(--color-text-tertiary);
+}
+
+.type-label {
+  font-family: var(--type-label-family);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  line-height: var(--type-label-leading);
+  letter-spacing: var(--type-label-tracking);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.type-eyebrow {
+  font-family: var(--type-eyebrow-family);
+  font-size: var(--type-eyebrow-size);
+  font-weight: var(--type-eyebrow-weight);
+  line-height: var(--type-eyebrow-leading);
+  letter-spacing: var(--type-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.type-code {
+  font-family: var(--type-code-family);
+  font-size: var(--type-code-size);
+  font-weight: var(--type-code-weight);
+  line-height: var(--type-code-leading);
+  color: var(--color-text-secondary);
+}
+
+.text-accent {
+  color: var(--color-text-accent);
+}
+
+/* Fluid Container */
+.app-container {
+  width: 100%;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(1rem, 3.5vw, 2.5rem);
+  padding-right: clamp(1rem, 3.5vw, 2.5rem);
+}
